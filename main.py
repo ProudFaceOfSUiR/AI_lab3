@@ -6,6 +6,7 @@ from torchvision.datasets.utils import download_url
 from torch.utils.data import random_split
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
+from torchvision.models import resnet
 from torchvision.transforms import ToTensor
 from torch.utils.data.dataloader import DataLoader
 import torch.nn as nn
@@ -168,4 +169,31 @@ if __name__ == '__main__':
     plt.grid()
     plt.legend()
     plt.show()
+
+weights_fname = 'flower-resnet.pth'
+torch.save(resnet.state_dict(), weights_fname)
+
+
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
+
+def predict_image(img, model):
+    # Преобразование to a batch of 1
+    xb = img.unsqueeze(0).to(device)
+    # Получение прогнозов от модели
+    yb = model(xb)
+    # Выбираем индекс с наибольшей вероятностью
+    _, preds  = torch.max(yb, dim=1)
+    # Получение метки класса
+    return dataset.classes[preds[0].item()]
+
+for i in range(1,10):
+  img, label = val_set[i]
+  plt.imshow(img.clip(0,1).permute(1, 2, 0))
+  plt.axis('off')
+  plt.title('Label: {}, Predicted: {}'.format(dataset.classes[label],predict_image(img, resnet)))
+  plt.show()
+  # print('Label:', dataset.classes[label], ',Predicted:', predict_image(img, resnet))
+
 
